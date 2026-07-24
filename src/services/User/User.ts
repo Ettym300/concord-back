@@ -226,7 +226,7 @@ export const openDMChannel = async (userId: string, friendId: string) => {
 
 interface UpdatePresencePayload {
   status?: UserStatus;
-  custom?: string;
+  custom?: string | null;
 }
 
 export const updateUserPresence = async (userId: string, presence: UpdatePresencePayload) => {

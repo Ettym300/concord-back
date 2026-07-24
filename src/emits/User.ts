@@ -19,9 +19,13 @@ export const emitUserPresenceUpdate = (
 
   const acts = presence.activities === null ? null : presence.activities?.map((a) => ({ ...a, socketId: undefined }));
   if (selfOnly) {
-    getIO().to(userId).emit(USER_PRESENCE_UPDATE, acts);
+    getIO().to(userId).emit(USER_PRESENCE_UPDATE, {
+      ...presence,
+      activities: acts,
+    });
     return;
   }
+
   emitToAll({
     event: USER_PRESENCE_UPDATE,
     userId,

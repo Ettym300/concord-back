@@ -206,7 +206,6 @@ export async function updateCachePresence({ userId, socketId, presence }: Update
 
   const isOffline = !currentStatus?.[0]?.status && !presence.status;
 
-  if (presence.custom === null) presence.custom = undefined;
 
   if (presence.activities || presence.activities === null) {
     const newActivities = [...(presence.activities || [])];
@@ -223,9 +222,11 @@ export async function updateCachePresence({ userId, socketId, presence }: Update
 
   let shouldEmit = !isOffline;
 
-  const didPresenceChange = presence.status && presence.status !== currentStatus[0]?.status;
+  const didPresenceChange = presence.status !== undefined && presence.status !== currentStatus[0]?.status;
+  
+  const didCustomChange = presence.custom !== undefined && presence.custom !== currentStatus[0]?.custom;
 
-  if (!didPresenceChange) {
+  if (!didPresenceChange && !didCustomChange) {
     shouldEmit = shouldEmit && !isDeepStrictEqual(currentStatus[0]?.activities || [], newPresence.activities || []);
   }
 
