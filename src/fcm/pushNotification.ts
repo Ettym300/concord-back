@@ -1,5 +1,6 @@
 import admin from 'firebase-admin';
 import { cert } from 'firebase-admin/app';
+import { getMessaging } from 'firebase-admin/messaging';
 import { prisma } from '../common/database';
 import { NotificationPingMode, removeFCMTokens } from '../services/User/User';
 import { Message, ServerChannelPermissions, ServerRole, User } from '@src/generated/prisma/client';
@@ -136,24 +137,25 @@ export async function sendServerPushMessageNotification(
     if (content.length > 200) content = content.substring(0, 200) + '…';
   }
 
-  const batchResponse = await admin
-    .messaging()
-    .sendEachForMulticast({
-      tokens,
-      android: { priority: 'high' },
-      data: {
-        ...(content ? { content } : undefined),
-        type: message.type.toString(),
-        channelName: channel.name!,
-        serverName: server.name,
-        channelId: message.channelId,
-        serverId,
-        cUserId: message.createdBy!.id,
-        cName: message.createdBy!.username,
-        ...(server.avatar ? { sAvatar: server.avatar } : undefined),
-        ...(server.hexColor ? { sHexColor: server.hexColor } : undefined),
-      },
-    })
+  const batchResponse = await getMessaging()
+    .sendEach(
+      tokens.map((token) => ({
+        token,
+        android: { priority: 'high' },
+        data: {
+          ...(content ? { content } : undefined),
+          type: message.type.toString(),
+          channelName: channel.name!,
+          serverName: server.name,
+          channelId: message.channelId,
+          serverId,
+          cUserId: message.createdBy!.id,
+          cName: message.createdBy!.username,
+          ...(server.avatar ? { sAvatar: server.avatar } : undefined),
+          ...(server.hexColor ? { sHexColor: server.hexColor } : undefined),
+        },
+      })),
+    )
     .catch(() => {});
   if (!batchResponse) return;
 
@@ -191,21 +193,22 @@ export async function sendDmPushNotification(
     content = formatMessage(message as any)!;
     if (content.length > 200) content = content.substring(0, 200) + '…';
   }
-  const batchResponse = await admin
-    .messaging()
-    .sendEachForMulticast({
-      tokens,
-      android: { priority: 'high' },
-      data: {
-        ...(content ? { content } : undefined),
-        type: message.type.toString(),
-        channelId: message.channelId,
-        cUserId: message.createdBy!.id,
-        cName: message.createdBy!.username,
-        ...(message.createdBy!.avatar ? { uAvatar: message.createdBy!.avatar } : undefined),
-        ...(message.createdBy!.hexColor ? { uHexColor: message.createdBy!.hexColor } : undefined),
-      },
-    })
+  const batchResponse = await getMessaging()
+    .sendEach(
+      tokens.map((token) => ({
+        token,
+        android: { priority: 'high' },
+        data: {
+          ...(content ? { content } : undefined),
+          type: message.type.toString(),
+          channelId: message.channelId,
+          cUserId: message.createdBy!.id,
+          cName: message.createdBy!.username,
+          ...(message.createdBy!.avatar ? { uAvatar: message.createdBy!.avatar } : undefined),
+          ...(message.createdBy!.hexColor ? { uHexColor: message.createdBy!.hexColor } : undefined),
+        },
+      })),
+    )
     .catch(() => {});
 
   if (!batchResponse) {
