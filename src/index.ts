@@ -209,10 +209,22 @@ async function scheduleDeleteAccountContent() {
 
 // Messages are not deleted all at once to reduce database strain.
 function scheduleDeleteMessages() {
+  console.log("[scheduleDeleteMessages]")
   setInterval(async () => {
+    console.log("[scheduleDeleteMessages] Running")
     const details = await prisma.scheduleMessageDelete.findFirst();
-    if (!details) return;
+    if (!details) {
+      Log.info('[scheduleDeleteMessages] no schedule entry found');
+      return;
+    }
+
+    Log.info('[scheduleDeleteMessages] running for channelId', details.channelId, {
+      deletingAttachments: details.deletingAttachments,
+      deletingMessages: details.deletingMessages,
+    });
+
     if (!details.deletingAttachments && !details.deletingMessages) {
+      Log.info('[scheduleDeleteMessages] no attachments or messages left to delete, removing schedule entry for', details.channelId);
       await prisma.scheduleMessageDelete.delete({
         where: { channelId: details.channelId },
       });
@@ -220,6 +232,7 @@ function scheduleDeleteMessages() {
     }
 
     if (details.deletingAttachments) {
+      Log.info('[scheduleDeleteMessages] deleting channel attachments for', details.channelId);
       const [, err] = await deleteChannelAttachmentBatch(details.channelId);
 
       if (err?.type && err.type !== 'INVALID_PATH') {
@@ -227,6 +240,7 @@ function scheduleDeleteMessages() {
       }
 
       if (err?.type === 'INVALID_PATH') {
+        Log.info('[scheduleDeleteMessages] invalid path when deleting attachments, disabling attachment delete for', details.channelId);
         await prisma.scheduleMessageDelete.update({
           where: { channelId: details.channelId },
           data: { deletingAttachments: false },
@@ -234,8 +248,12 @@ function scheduleDeleteMessages() {
       }
     }
 
-    if (!details.deletingMessages) return;
+    if (!details.deletingMessages) {
+      Log.info('[scheduleDeleteMessages] message deletion disabled for', details.channelId);
+      return;
+    }
 
+    Log.info('[scheduleDeleteMessages] deleting up to 300 messages for', details.channelId);
     const deletedCount = await prisma.$executeRaw`
       DELETE FROM "messages"
       WHERE id IN 
@@ -246,7 +264,10 @@ function scheduleDeleteMessages() {
           LIMIT 300       
       );
     `;
+    Log.info('[scheduleDeleteMessages] deleted message batch count', deletedCount, 'for channelId', details.channelId);
+
     if (deletedCount < 300) {
+      Log.info('[scheduleDeleteMessages] batch under limit, finalizing channel delete for', details.channelId);
       await prisma.$transaction([
         prisma.scheduleMessageDelete.update({
           where: { channelId: details.channelId },
