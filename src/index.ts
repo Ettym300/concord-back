@@ -220,7 +220,7 @@ function scheduleDeleteMessages() {
     }
 
     if (details.deletingAttachments) {
-      const [, err] = await deleteChannelAttachmentBatch(details.channelId);
+      const [count , err] = await deleteChannelAttachmentBatch(details.channelId);
 
       if (err?.type && err.type !== 'INVALID_PATH') {
         console.trace(err);
@@ -232,6 +232,10 @@ function scheduleDeleteMessages() {
           data: { deletingAttachments: false },
         });
       }
+      if (count) {
+        Log.info('Deleted '+ count + ' attachments from ' + details.channelId)
+      }
+      return;
     }
 
     if (!details.deletingMessages) return;
