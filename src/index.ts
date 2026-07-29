@@ -267,7 +267,7 @@ function scheduleDeleteMessages() {
       ]);
     }
     Log.info('Deleted', deletedCount, 'message(s). channelId', details.channelId);
-  }, 60000);
+  }, 10_000);
 }
 
 // run vacuum once everyday.
