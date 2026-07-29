@@ -211,10 +211,8 @@ async function scheduleDeleteAccountContent() {
 function scheduleDeleteMessages() {
   setInterval(async () => {
     const details = await prisma.scheduleMessageDelete.findFirst();
-    Log.debug('scheduleDeleteMessages tick', { details });
     if (!details) return;
     if (!details.deletingAttachments && !details.deletingMessages) {
-      Log.debug('scheduleDeleteMessages removing empty schedule entry', { channelId: details.channelId });
       await prisma.scheduleMessageDelete.delete({
         where: { channelId: details.channelId },
       });
@@ -222,9 +220,7 @@ function scheduleDeleteMessages() {
     }
 
     if (details.deletingAttachments) {
-      Log.debug('scheduleDeleteMessages deleting attachments', { channelId: details.channelId });
       const [count , err] = await deleteChannelAttachmentBatch(details.channelId);
-      Log.debug('scheduleDeleteMessages deleteChannelAttachmentBatch result', { channelId: details.channelId, count, err });
       console.log(count, err)
 
       if (err?.type && err.type !== 'INVALID_PATH') {
@@ -244,8 +240,6 @@ function scheduleDeleteMessages() {
 
     if (!details.deletingMessages) return;
 
-    Log.debug('scheduleDeleteMessages deleting messages', { channelId: details.channelId });
-
     const deletedCount = await prisma.$executeRaw`
       DELETE FROM "messages"
       WHERE id IN 
@@ -256,7 +250,6 @@ function scheduleDeleteMessages() {
           LIMIT 300       
       );
     `;
-    Log.debug('scheduleDeleteMessages messages deleted', { channelId: details.channelId, deletedCount });
     if (deletedCount < 300) {
       await prisma.$transaction([
         prisma.scheduleMessageDelete.update({
