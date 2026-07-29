@@ -221,6 +221,7 @@ function scheduleDeleteMessages() {
 
     if (details.deletingAttachments) {
       const [count , err] = await deleteChannelAttachmentBatch(details.channelId);
+      console.log(count, err)
 
       if (err?.type && err.type !== 'INVALID_PATH') {
         console.trace(err);
@@ -235,7 +236,6 @@ function scheduleDeleteMessages() {
       if (count) {
         Log.info('Deleted '+ count + ' attachments from ' + details.channelId)
       }
-      return;
     }
 
     if (!details.deletingMessages) return;
