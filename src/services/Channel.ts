@@ -121,7 +121,7 @@ interface CreateServerChannelOpts {
 
 export const createServerChannel = async (opts: CreateServerChannelOpts): Promise<CustomResult<Channel, CustomError>> => {
   const channelCount = await prisma.channel.count({
-    where: { serverId: opts.serverId },
+    where: { serverId: opts.serverId, deleting: null  },
   });
   if (channelCount >= env.MAX_CHANNELS_PER_SERVER) {
     return [null, generateError('You already created the maximum amount of channels for this server.')];
