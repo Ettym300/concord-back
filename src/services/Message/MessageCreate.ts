@@ -1,4 +1,4 @@
-import { Attachment } from '@src/generated/prisma/client';
+import { Attachment, Prisma } from '@src/generated/prisma/client';
 import { ChannelCache, getChannelForUserCache } from '../../cache/ChannelCache';
 import { getServerCache, ServerCache } from '../../cache/ServerCache';
 import { dateToDateTime, prisma } from '../../common/database';
@@ -159,10 +159,22 @@ const createMessageAndChannelUpdate = async (opts: SendMessageOptions, validated
         });
       }
       if (!override) {
-        override = await prisma.messageCreatorOverride.create({
-          data: { username, avatarUrl, animatedAvatar },
-          select: { id: true, animatedAvatar: true },
-        });
+        try {
+          override = await prisma.messageCreatorOverride.create({
+            data: { username, avatarUrl, animatedAvatar },
+            select: { id: true, animatedAvatar: true },
+          });
+        } catch (err) {
+          if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2002') {
+            override = await prisma.messageCreatorOverride.findFirst({
+              where: { username, avatarUrl },
+              select: { id: true, animatedAvatar: true },
+            });
+            if (!override) throw err;
+          } else {
+            throw err;
+          }
+        }
       }
     }
     overrideId = override.id;
@@ -209,26 +221,26 @@ const createMessageAndChannelUpdate = async (opts: SendMessageOptions, validated
 
       ...(opts.buttons?.length
         ? {
-            buttons: {
-              createMany: {
-                data: opts.buttons,
-              },
+          buttons: {
+            createMany: {
+              data: opts.buttons,
             },
-          }
+          },
+        }
         : undefined),
 
       ...(htmlEmbed ? { htmlEmbed: zip(JSON.stringify(htmlEmbed)) } : undefined),
       ...(opts.attachment
         ? {
-            attachments: {
-              create: {
-                ...opts.attachment,
-                id: generateId(),
-                channelId: opts.channelId,
-                serverId: validatedResult.server?.id,
-              },
+          attachments: {
+            create: {
+              ...opts.attachment,
+              id: generateId(),
+              channelId: opts.channelId,
+              serverId: validatedResult.server?.id,
             },
-          }
+          },
+        }
         : undefined),
     },
     include: {
@@ -336,10 +348,10 @@ const handleMessageSideEffects = async (message: TransformedMessage, opts: SendM
       serverId: validatedResult.server.id,
       member: validatedResult.member
         ? {
-            id: validatedResult.member.id,
-            permissions: validatedResult.member.permissions,
-            nickname: validatedResult.member.nickname,
-          }
+          id: validatedResult.member.id,
+          permissions: validatedResult.member.permissions,
+          nickname: validatedResult.member.nickname,
+        }
         : null,
     });
     sendServerPushMessageNotification(validatedResult.server?.id, message, channel!, server!);
@@ -361,19 +373,19 @@ const handleMessageSideEffects = async (message: TransformedMessage, opts: SendM
           where: {
             ...(opts.userId
               ? {
-                  mentionedById_mentionedToId_channelId: {
-                    channelId: channel.id,
-                    mentionedById: opts.userId,
-                    mentionedToId: channel.inbox.recipientId,
-                  },
-                }
+                mentionedById_mentionedToId_channelId: {
+                  channelId: channel.id,
+                  mentionedById: opts.userId,
+                  mentionedToId: channel.inbox.recipientId,
+                },
+              }
               : {
-                  mentionedByWebhookId_mentionedToId_channelId: {
-                    channelId: channel.id,
-                    mentionedToId: channel.inbox.recipientId,
-                    mentionedByWebhookId: opts.webhookId!,
-                  },
-                }),
+                mentionedByWebhookId_mentionedToId_channelId: {
+                  channelId: channel.id,
+                  mentionedToId: channel.inbox.recipientId,
+                  mentionedByWebhookId: opts.webhookId!,
+                },
+              }),
           },
           update: {
             count: { increment: 1 },
