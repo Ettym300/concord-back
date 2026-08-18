@@ -9,6 +9,7 @@ import { serverMemberVerification } from '../../middleware/serverMemberVerificat
 import { updateServer } from '../../services/Server';
 import { verifyUpload } from '../../common/nerimityCDN';
 import { hasBadWord } from '../../common/badWords';
+import env from '../../common/env';
 
 export function serverUpdate(Router: Router) {
   Router.post(
@@ -45,10 +46,8 @@ async function route(req: Request, res: Response) {
 
   const { avatarId, bannerId, ...matchedBody }: Body = matchedData(req);
 
-  if (avatarId || bannerId) {
-    if (!req.userCache.account?.emailConfirmed) {
-      return res.status(400).json(generateError('You must confirm your email before choosing an avatar or banner.'));
-    }
+  if ((avatarId || bannerId) && !env.DEV_MODE && !req.userCache.account?.emailConfirmed) {
+    return res.status(400).json(generateError('You must confirm your email before choosing an avatar or banner.'));
   }
 
   if (matchedBody.name) {

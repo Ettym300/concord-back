@@ -8,6 +8,7 @@ import { updateUser } from '../../services/User/updateUser';
 import { updateBot } from '../../services/Application';
 import { verifyUpload } from '../../common/nerimityCDN';
 import { hasBadWord } from '../../common/badWords';
+import env from '../../common/env';
 
 export function userUpdate(Router: Router) {
   Router.post(
@@ -85,10 +86,8 @@ async function route(req: Request, res: Response) {
       return res.status(400).json(generateError('Username cannot contain bad words.', 'username'));
     }
   }
-  if (body.avatarId || body.bannerId) {
-    if (!req.userCache.application && !req.userCache.account?.emailConfirmed) {
-      return res.status(400).json(generateError('You must confirm your email before choosing an avatar or banner.'));
-    }
+  if ((body.avatarId || body.bannerId) && !env.DEV_MODE && !req.userCache.application && !req.userCache.account?.emailConfirmed) {
+    return res.status(400).json(generateError('You must confirm your email before choosing an avatar or banner.'));
   }
   const profile = {
     ...(body.bio !== undefined ? { bio: body.bio } : {}),

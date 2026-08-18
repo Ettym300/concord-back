@@ -4,6 +4,7 @@ import { Log } from './common/Log';
 import schedule from 'node-schedule';
 import { deleteChannelAttachmentBatch, deleteImageBatch } from './common/nerimityCDN';
 import env from './common/env';
+import { startDevCdn } from './common/devCdn';
 import { connectRedis, customRedisFlush, redisClient } from './common/redis';
 import { getAndRemovePostViewsCache } from './cache/PostViewsCache';
 import timers from 'timers/promises';
@@ -27,6 +28,9 @@ if (cluster.isPrimary) {
 
   if (env.DEV_MODE) {
     cpuCount = 1;
+  }
+  if (env.DEV_MODE && env.TYPE === 'api') {
+    startDevCdn();
   }
   let prismaConnected = false;
 

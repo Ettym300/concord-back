@@ -2,6 +2,7 @@ import { Request, Response, Router } from 'express';
 import { authenticate } from '../../middleware/authenticate';
 import { rateLimit } from '../../middleware/rateLimit';
 import env from '../../common/env';
+import { generateError } from '../../common/errorHandler';
 
 export function getTenorCategories(Router: Router) {
   Router.get(
@@ -37,6 +38,10 @@ setInterval(() => {
 }, ONE_HOUR_TO_MS);
 
 async function route(req: Request, res: Response) {
+  if (!env.KLIPY_API_KEY) {
+    return res.status(400).json(generateError('KLIPY_API_KEY is not configured.'));
+  }
+
   if (cache) return res.json(cache);
 
   const url = new URL('https://api.klipy.com/v2/categories');

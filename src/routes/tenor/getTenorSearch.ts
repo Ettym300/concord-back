@@ -2,6 +2,7 @@ import { Request, Response, Router } from 'express';
 import { authenticate } from '../../middleware/authenticate';
 import { rateLimit } from '../../middleware/rateLimit';
 import env from '../../common/env';
+import { generateError } from '../../common/errorHandler';
 
 export function getTenorSearch(Router: Router) {
   Router.get(
@@ -54,6 +55,10 @@ interface TenorItem {
 }
 
 async function route(req: Request, res: Response) {
+  if (!env.KLIPY_API_KEY) {
+    return res.status(400).json(generateError('KLIPY_API_KEY is not configured.'));
+  }
+
   const query = req.query.query as string;
   const pos = req.query.pos as string;
 
