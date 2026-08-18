@@ -92,6 +92,18 @@
     "npm": "please-use-pnpm",
     "pnpm": ">= 1.0.0"
   },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "@firebase/util",
+      "@prisma/engines",
+      "bcrypt",
+      "bufferutil",
+      "esbuild",
+      "prisma",
+      "protobufjs",
+      "utf-8-validate"
+    ]
+  },
   "optionalDependencies": {
     "bufferutil": "^4.1.0",
     "utf-8-validate": "^6.0.6"
