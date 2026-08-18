@@ -35,7 +35,9 @@ function mimeToExt(mimeType: string, filename: string) {
 }
 
 function requireSecret(req: Request, res: Response, next: NextFunction) {
-  if (req.headers.authorization !== env.NERIMITY_CDN_SECRET) {
+  const expected = (env.NERIMITY_CDN_SECRET || '').trim();
+  const received = String(req.headers.authorization || '').trim();
+  if (!expected || received !== expected) {
     res.status(401).json({ message: 'Invalid CDN secret' });
     return;
   }
@@ -78,10 +80,14 @@ export function startDevCdn() {
   app.use(
     cors({
       origin: true,
+      credentials: true,
       methods: ['GET', 'POST', 'DELETE', 'OPTIONS'],
       allowedHeaders: ['Content-Type', 'Authorization', 'File-Name'],
     }),
   );
+  app.get('/health', (_req, res) => {
+    res.json({ ok: true });
+  });
   app.use(express.json({ limit: '2mb' }));
 
   const rawUpload = express.raw({ type: '*/*', limit: '50mb' });
@@ -159,9 +165,9 @@ export function startDevCdn() {
     port = 8003;
   }
 
-  const host = '127.0.0.1';
+  const host = process.env.CDN_BIND || '0.0.0.0';
   const httpServer = app.listen(port, host, () => {
-    Log.info(`Dev CDN listening on http://${host}:${port}`);
+    Log.info(`CDN listening on http://${host}:${port}`);
   });
   httpServer.on('error', (error: NodeJS.ErrnoException) => {
     if (error.code === 'EADDRINUSE') {

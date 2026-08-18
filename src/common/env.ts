@@ -3,15 +3,21 @@ dotenv.config({ quiet: true });
 
 import { JsonWebKey } from 'crypto';
 
+function unquote(value?: string) {
+  if (!value) return value as string;
+  return value.trim().replace(/^['"]|['"]$/g, '');
+}
+
 const origin = (): string | string[] => {
-  if (!process.env.ORIGIN) {
+  const raw = unquote(process.env.ORIGIN);
+  if (!raw) {
     console.warn("ORIGIN is not provided in .env. '*' will be used by default.");
     return '*';
   }
-  if (process.env.ORIGIN.startsWith('[')) {
-    return JSON.parse(process.env.ORIGIN);
+  if (raw.startsWith('[')) {
+    return JSON.parse(raw);
   }
-  return process.env.ORIGIN;
+  return raw;
 };
 
 export default {
@@ -19,20 +25,20 @@ export default {
   API_PORT: parseInt(process.env.API_PORT as string),
   NERIMITY_EMBED_BOT_PRIVATE_KEY: JSON.parse((process.env.NERIMITY_EMBED_BOT_PRIVATE_KEY as string) || 'null') as JsonWebKey | null,
   WS_PORT: parseInt(process.env.WS_PORT as string),
-  JWT_SECRET: process.env.JWT_SECRET as string,
-  CONNECTIONS_SECRET: process.env.CONNECTIONS_SECRET as string,
-  JWT_WEBHOOK_SECRET: process.env.JWT_WEBHOOK_SECRET as string,
-  JWT_CONNECTIONS_SECRET: process.env.JWT_CONNECTIONS_SECRET as string,
-  DATABASE_URL: process.env.DATABASE_URL as string,
-  REDIS_HOST: process.env.REDIS_HOST as string,
-  REDIS_PATH: process.env.REDIS_PATH as string,
+  JWT_SECRET: unquote(process.env.JWT_SECRET) as string,
+  CONNECTIONS_SECRET: unquote(process.env.CONNECTIONS_SECRET) as string,
+  JWT_WEBHOOK_SECRET: unquote(process.env.JWT_WEBHOOK_SECRET) as string,
+  JWT_CONNECTIONS_SECRET: unquote(process.env.JWT_CONNECTIONS_SECRET) as string,
+  DATABASE_URL: unquote(process.env.DATABASE_URL) as string,
+  REDIS_HOST: unquote(process.env.REDIS_HOST) as string,
+  REDIS_PATH: unquote(process.env.REDIS_PATH) as string,
   REDIS_PORT: parseInt(process.env.REDIS_PORT as string),
-  REDIS_PASS: process.env.REDIS_PASS as string,
+  REDIS_PASS: unquote(process.env.REDIS_PASS) as string,
   ORIGIN: origin(),
-  CLIENT_URL: process.env.CLIENT_URL as string,
-  NERIMITY_CDN: process.env.NERIMITY_CDN as string,
-  LOCAL_NERIMITY_CDN: process.env.LOCAL_NERIMITY_CDN as string,
-  NERIMITY_CDN_SECRET: process.env.NERIMITY_CDN_SECRET as string,
+  CLIENT_URL: unquote(process.env.CLIENT_URL) as string,
+  NERIMITY_CDN: unquote(process.env.NERIMITY_CDN) as string,
+  LOCAL_NERIMITY_CDN: unquote(process.env.LOCAL_NERIMITY_CDN) as string,
+  NERIMITY_CDN_SECRET: unquote(process.env.NERIMITY_CDN_SECRET) as string,
 
   MAX_CHANNELS_PER_SERVER: parseInt(process.env.MAX_CHANNELS_PER_SERVER || '0') as number,
   MAX_INVITES_PER_SERVER: parseInt(process.env.MAX_INVITES_PER_SERVER || '0') as number,

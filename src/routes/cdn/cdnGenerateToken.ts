@@ -3,7 +3,7 @@ import { authenticate } from '../../middleware/authenticate';
 import { rateLimit } from '../../middleware/rateLimit';
 import { generateToken } from '@src/common/nerimityCDN';
 import { generateError } from '@src/common/errorHandler';
-import env from '../../common/env';
+import { Log } from '@src/common/Log';
 
 export function cdnGenerateToken(Router: Router) {
   Router.post(
@@ -23,7 +23,8 @@ async function route(req: Request, res: Response) {
     userId: req.userCache.id,
   });
   if (error || !genRes) {
-    const message = env.DEV_MODE && typeof error === 'string' ? error : 'Could not generate token.';
+    Log.error('CDN generate token failed', error);
+    const message = typeof error === 'string' ? error : 'Could not generate token.';
     return res.status(400).json(generateError(message));
   }
 
