@@ -7,6 +7,9 @@ RUN apk add --no-cache openssl \
 
 WORKDIR /app
 
+ENV DATABASE_URL="postgresql://postgres:build@127.0.0.1:5432/concord"
+ENV DATABASE_DIRECT_URL="postgresql://postgres:build@127.0.0.1:5432/concord"
+
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml tsconfig.json tsdown.api.config.ts tsdown.ws.config.ts prisma.config.ts .npmrc ./
 COPY prisma ./prisma
 COPY src ./src
