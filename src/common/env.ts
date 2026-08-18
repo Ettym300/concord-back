@@ -1,12 +1,11 @@
 import dotenv from 'dotenv';
 dotenv.config({ quiet: true });
 
-import { Log } from './Log';
 import { JsonWebKey } from 'crypto';
 
 const origin = (): string | string[] => {
   if (!process.env.ORIGIN) {
-    Log.warn("ORIGIN is not provided in .env. '*' will be used by default.");
+    console.warn("ORIGIN is not provided in .env. '*' will be used by default.");
     return '*';
   }
   if (process.env.ORIGIN.startsWith('[')) {
