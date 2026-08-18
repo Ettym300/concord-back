@@ -69,6 +69,8 @@ main();
 
 app.use(
   helmet({
+    crossOriginResourcePolicy: { policy: 'cross-origin' },
+    crossOriginEmbedderPolicy: false,
     strictTransportSecurity: {
       maxAge: 31536000,
       includeSubDomains: false,
@@ -78,7 +80,10 @@ app.use(
 
 app.use(
   cors({
-    origin: env.ORIGIN,
+    origin: true,
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
   }),
 );
 

@@ -23,6 +23,7 @@ export const clearMembersFetched = (socketId: string) => delete membersFetched[s
 export async function createIO(server?: http.Server) {
   io = new socketIO.Server(server, {
     transports: ['websocket'],
+    cors: { origin: true, credentials: true },
   });
 
   io.adapter(createAdapter(redisClient));
