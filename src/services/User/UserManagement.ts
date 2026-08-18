@@ -22,6 +22,10 @@ import geoip from 'geoip-lite';
 import { checkUserPassword } from '../UserAuthentication';
 
 export async function sendEmailConfirmCode(userId: string) {
+  if (!env.EMAIL_CONFIRMATION_ENABLED) {
+    return [null, generateError('Email confirmation is currently disabled.')] as const;
+  }
+
   const account = await getAccountByUserId(userId);
 
   if (!account) {
@@ -95,6 +99,10 @@ const updateForgotPasswordCode = async (userId: string) => {
 };
 
 export async function verifyEmailConfirmCode(userId: string, code: string) {
+  if (!env.EMAIL_CONFIRMATION_ENABLED) {
+    return [null, generateError('Email confirmation is currently disabled.')] as const;
+  }
+
   const account = await getAccountByUserId(userId);
 
   if (!account) {

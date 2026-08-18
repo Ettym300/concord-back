@@ -38,7 +38,8 @@ export const registerUser = async (opts: RegisterOpts) => {
         id: generateId(),
         email: opts.email,
         password: hashedPassword,
-        emailConfirmed: env.DEV_MODE,
+        // Email confirmation is off until SMTP is set up. Flip EMAIL_CONFIRMATION_ENABLED when ready.
+        emailConfirmed: env.EMAIL_CONFIRMATION_ENABLED ? env.DEV_MODE : true,
         user: {
           create: {
             id: generateId(),

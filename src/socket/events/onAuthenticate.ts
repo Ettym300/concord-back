@@ -23,6 +23,7 @@ import { userAgentToDeviceType } from '@src/services/User/UserManagement';
 import { markMembersFetched } from '../socket';
 import PQueue from 'p-queue';
 import { generateId } from '@src/common/flakeId';
+import { isEmailConfirmed } from '@src/common/emailConfirmation';
 
 interface Payload {
   token: string;
@@ -291,7 +292,7 @@ const handleAuthenticate = async (socket: Socket, payload: Payload) => {
       dmStatus: user.account?.dmStatus,
       friendRequestStatus: user.account?.friendRequestStatus,
       lastOnlineStatus: user.lastOnlineStatus,
-      emailConfirmed: user.account?.emailConfirmed,
+      emailConfirmed: isEmailConfirmed(user.account?.emailConfirmed),
       connections: user.connections,
       notices: user.notices,
       reminders: user.reminders.map(transformReminder),

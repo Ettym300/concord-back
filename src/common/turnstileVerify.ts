@@ -9,6 +9,7 @@ interface TurnstileResponse {
 
 export async function turnstileVerify(token: string, remoteIp?: string): Promise<boolean> {
   if (env.DEV_MODE) return true;
+  if (!env.TURNSTILE_SECRET) return true;
 
   const params = new URLSearchParams();
   params.append('secret', env.TURNSTILE_SECRET);
@@ -29,9 +30,10 @@ export async function turnstileVerify(token: string, remoteIp?: string): Promise
 
     const json = (await res.json()) as TurnstileResponse;
 
-    if (json.hostname !== 'nerimity.com') {
-      return false;
-    }
+    // Hostname used to be locked to nerimity.com. Keep disabled for self-hosted Concord.
+    // if (json.hostname !== 'nerimity.com') {
+    //   return false;
+    // }
 
     if (json.challenge_ts) {
       const challengeDate = new Date(json.challenge_ts).getTime();

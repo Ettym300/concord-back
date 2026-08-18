@@ -42,6 +42,9 @@ export default {
   CLOUDFLARE_CALLS_ID: process.env.CLOUDFLARE_CALLS_ID as string,
   CLOUDFLARE_CALLS_TOKEN: process.env.CLOUDFLARE_CALLS_TOKEN as string,
 
+  // Set to "true" when SMTP is configured and email verification should be required again.
+  EMAIL_CONFIRMATION_ENABLED: process.env.EMAIL_CONFIRMATION_ENABLED === 'true',
+
   SMTP_USER: process.env.SMTP_USER as string,
   SMTP_PASS: process.env.SMTP_PASS as string,
   SMTP_FROM: process.env.SMTP_FROM as string,

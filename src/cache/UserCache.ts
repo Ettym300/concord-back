@@ -9,6 +9,7 @@ import { hasBit, USER_BADGES } from '../common/Bitwise';
 import { addDeviceWithSession, DeviceTypeId } from '@src/services/User/UserManagement';
 import { dedupeActivities } from './utils/presenceUtils';
 import { isDeepStrictEqual } from 'node:util';
+import { isEmailConfirmed } from '../common/emailConfirmation';
 
 export interface ActivityStatus {
   socketId: string;
@@ -297,6 +298,17 @@ export interface ApplicationCache {
   id: string;
 }
 
+function applyEmailConfirmationOverride(user: UserCache): UserCache {
+  if (!user.account) return user;
+  return {
+    ...user,
+    account: {
+      ...user.account,
+      emailConfirmed: isEmailConfirmed(user.account.emailConfirmed),
+    },
+  };
+}
+
 export async function getUserIdBySocketId(socketId: string) {
   const userId = await redisClient.get(CONNECTED_USER_ID_KEY_STRING(socketId));
   if (!userId) return null;
@@ -328,7 +340,7 @@ export async function getUserCacheBySessionId(sessionId: string, beforeCache?: (
   });
 
   if (typeof cacheUser === 'string') {
-    return [JSON.parse(cacheUser) as UserCache, null] as const;
+    return [applyEmailConfirmationOverride(JSON.parse(cacheUser) as UserCache), null] as const;
   }
   // If not in cache, fetch from database
 
@@ -345,7 +357,7 @@ export async function getUserCache(userId: string, beforeCache?: (user: UserCach
   const cacheKey = USER_CACHE_KEY_STRING(userId);
   const cacheUser = await redisClient.get(cacheKey);
   if (cacheUser) {
-    return [JSON.parse(cacheUser) as UserCache, null] as const;
+    return [applyEmailConfirmationOverride(JSON.parse(cacheUser) as UserCache), null] as const;
   }
   // If not in cache, fetch from database
   return storeUserCache(userId, beforeCache);
@@ -364,7 +376,7 @@ async function storeUserCache(userId: string, beforeCache?: (user: UserCache) =>
       ? {
           account: {
             id: user.account!.id,
-            emailConfirmed: user.account!.emailConfirmed,
+            emailConfirmed: isEmailConfirmed(user.account!.emailConfirmed),
           },
         }
       : {
