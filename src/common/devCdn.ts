@@ -159,13 +159,16 @@ export function startDevCdn() {
     port = 8003;
   }
 
-  const httpServer = app.listen(port, () => {
-    Log.info('Dev CDN listening on *:' + port);
+  const host = '127.0.0.1';
+  const httpServer = app.listen(port, host, () => {
+    Log.info(`Dev CDN listening on http://${host}:${port}`);
   });
   httpServer.on('error', (error: NodeJS.ErrnoException) => {
     if (error.code === 'EADDRINUSE') {
-      Log.warn('Dev CDN already running on port ' + port);
-      return;
+      Log.error(
+        `Port ${port} is in use but Dev CDN did not start. Stop other server instances and run "pnpm dev" again.`,
+      );
+      process.exit(1);
     }
     throw error;
   });

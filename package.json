@@ -5,7 +5,8 @@
   "main": "dist/index.js",
   "type": "module",
   "scripts": {
-    "dev": "concurrently \"pnpm dev-api\" \"pnpm dev-ws\"",
+    "dev": "concurrently \"pnpm dev-cdn\" \"pnpm dev-api\" \"pnpm dev-ws\"",
+    "dev-cdn": "tsdown --c tsdown.devCdn.config.ts --watch --onSuccess \"node --enable-source-maps dist/dev-cdn/devCdnEntry.mjs\"",
     "start-dist-both": "concurrently \"pnpm start-dist-api\" \"pnpm start-dist-ws\"",
     "start-dist-api": "node --trace-warnings --enable-source-maps dist/api/index.mjs --api",
     "start-dist-ws": "node --trace-warnings --enable-source-maps dist/ws/index.mjs --ws",

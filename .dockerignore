@@ -1,0 +1,7 @@
+node_modules
+dist
+.dev-cdn
+.env
+.git
+.github
+*.md
