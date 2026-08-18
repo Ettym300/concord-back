@@ -40,9 +40,9 @@ export default {
   LOCAL_NERIMITY_CDN: unquote(process.env.LOCAL_NERIMITY_CDN) as string,
   NERIMITY_CDN_SECRET: unquote(process.env.NERIMITY_CDN_SECRET) as string,
 
-  MAX_CHANNELS_PER_SERVER: parseInt(process.env.MAX_CHANNELS_PER_SERVER || '0') as number,
-  MAX_INVITES_PER_SERVER: parseInt(process.env.MAX_INVITES_PER_SERVER || '0') as number,
-  MAX_ROLES_PER_SERVER: parseInt(process.env.MAX_ROLES_PER_SERVER || '0') as number,
+  MAX_CHANNELS_PER_SERVER: parseInt(process.env.MAX_CHANNELS_PER_SERVER || '100') as number,
+  MAX_INVITES_PER_SERVER: parseInt(process.env.MAX_INVITES_PER_SERVER || '10') as number,
+  MAX_ROLES_PER_SERVER: parseInt(process.env.MAX_ROLES_PER_SERVER || '50') as number,
 
   TURNSTILE_SECRET: process.env.TURNSTILE_SECRET as string,
   CLOUDFLARE_CALLS_ID: process.env.CLOUDFLARE_CALLS_ID as string,
