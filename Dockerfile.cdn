@@ -1,15 +1,16 @@
 FROM node:22-alpine
 
-RUN corepack enable && corepack prepare pnpm@latest --activate
+ENV CI=true
+
+RUN corepack enable && corepack prepare pnpm@9.15.9 --activate
 
 WORKDIR /app
 
-COPY package.json pnpm-lock.yaml tsconfig.json tsdown.devCdn.config.ts ./
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml tsconfig.json tsdown.devCdn.config.ts .npmrc ./
 COPY src ./src
 
 RUN pnpm install --frozen-lockfile \
   && pnpm exec tsdown --c tsdown.devCdn.config.ts
-
 EXPOSE 8003
 
 CMD ["node", "--enable-source-maps", "dist/dev-cdn/devCdnEntry.mjs"]

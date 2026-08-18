@@ -92,6 +92,7 @@
     "npm": "please-use-pnpm",
     "pnpm": ">= 1.0.0"
   },
+  "packageManager": "pnpm@9.15.9",
   "pnpm": {
     "onlyBuiltDependencies": [
       "@firebase/util",

@@ -1,11 +1,13 @@
 FROM node:22-alpine
 
+ENV CI=true
+
 RUN apk add --no-cache openssl \
-  && corepack enable && corepack prepare pnpm@latest --activate
+  && corepack enable && corepack prepare pnpm@9.15.9 --activate
 
 WORKDIR /app
 
-COPY package.json pnpm-lock.yaml tsconfig.json tsdown.api.config.ts tsdown.ws.config.ts ./
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml tsconfig.json tsdown.api.config.ts tsdown.ws.config.ts .npmrc ./
 COPY prisma ./prisma
 COPY src ./src
 
