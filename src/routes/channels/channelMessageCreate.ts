@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response, Router } from 'express';
 import { body, header } from 'express-validator';
 import { customExpressValidatorResult, generateError } from '../../common/errorHandler';
-import { CHANNEL_PERMISSIONS, ROLE_PERMISSIONS, USER_BADGES, hasBit, isUserAdmin } from '../../common/Bitwise';
+import { CHANNEL_PERMISSIONS, ROLE_PERMISSIONS, hasBit, isUserAdmin } from '../../common/Bitwise';
 import { authenticate } from '../../middleware/authenticate';
 import { channelPermissions } from '../../middleware/channelPermissions';
 import { channelVerification } from '../../middleware/channelVerification';
@@ -13,7 +13,6 @@ import { deleteFile, verifyUpload } from '../../common/nerimityCDN';
 import { ChannelType, TextChannelTypes } from '../../types/Channel';
 import { Attachment } from '@src/generated/prisma/client';
 import { dateToDateTime, prisma } from '../../common/database';
-import { ChannelCache } from '../../cache/ChannelCache';
 import { UserCache } from '../../cache/UserCache';
 import { ServerCache } from '../../cache/ServerCache';
 import { CloseTicketStatuses, TicketStatus, updateTicketStatus } from '../../services/Ticket';
@@ -24,7 +23,6 @@ import { checkAndUpdateRateLimit } from '../../cache/RateLimitCache';
 import { ServerMemberCache } from '../../cache/ServerMemberCache';
 import env from '../../common/env';
 import { generateId } from '../../common/flakeId';
-import { nerimitySupporterCdnMessage } from '@src/common/nerimitySupporterCdnMessage';
 
 export function channelMessageCreate(Router: Router) {
   Router.post(
@@ -187,21 +185,6 @@ async function route(req: Request, res: Response) {
     if (!isEmailConfirmed(req.userCache) && !req.userCache.bot) {
       return res.status(400).json(generateError('You must confirm your email to send attachment messages.'));
     }
-
-    if (body.nerimityCdnFileId) {
-      const isMod = hasBit(req.userCache.badges, USER_BADGES.MOD.bit);
-
-      const isServerNotPublicAndNotSupporter = req.serverCache && !isServerPublic(req.serverCache) && !isSupporterOrModerator(req.userCache);
-
-      if (!isMod && isServerNotPublicAndNotSupporter) {
-        return res.status(400).json(generateError(nerimitySupporterCdnMessage));
-      }
-      const isPrivateChannelAndNotSupporter = req.channelCache.type === ChannelType.SERVER_TEXT && !req.channelCache.canBePublic && !isSupporterOrModerator(req.userCache);
-
-      if (!isMod && isPrivateChannelAndNotSupporter) {
-        return res.status(400).json(generateError(nerimitySupporterCdnMessage));
-      }
-    }
   }
 
   if (body.googleDriveAttachment) {
@@ -349,19 +332,6 @@ async function route(req: Request, res: Response) {
 
 const isEmailConfirmed = (user: UserCache) => {
   return user.account?.emailConfirmed;
-};
-
-const isSupporterOrModerator = (user: UserCache) => {
-  return hasBit(user.badges, USER_BADGES.SUPPORTER.bit) || hasBit(user.badges, USER_BADGES.FOUNDER.bit) || hasBit(user.badges, USER_BADGES.ADMIN.bit);
-};
-
-const isPrivateChannel = (channel: ChannelCache) => {
-  if (!channel.serverId) return false;
-  return !hasBit(channel.permissions, CHANNEL_PERMISSIONS.PUBLIC_CHANNEL.bit);
-};
-
-const isServerPublic = (server: ServerCache) => {
-  return server.public;
 };
 
 const isServerMemberModerator = (server: ServerCache, member: ServerMemberCache) => {

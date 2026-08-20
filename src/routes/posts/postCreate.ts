@@ -6,7 +6,6 @@ import { rateLimit } from '../../middleware/rateLimit';
 import { createPost } from '../../services/Post';
 import { verifyUpload } from '../../common/nerimityCDN';
 import { UserCache } from '../../cache/UserCache';
-import { hasBit, USER_BADGES } from '../../common/Bitwise';
 import { generateId } from '../../common/flakeId';
 
 export function postCreate(Router: Router) {
@@ -49,7 +48,7 @@ async function route(req: Request, res: Response) {
   if (validateError) {
     return res.status(400).json(validateError);
   }
-  const contentLimit = hasBit(req.userCache.badges, USER_BADGES.SUPPORTER.bit) ? 1500 : 500;
+  const contentLimit = 1500;
 
   if (body.content?.length > contentLimit) {
     return res.status(400).json(generateError(`Content length must be between 1 and ${contentLimit} characters.`));
