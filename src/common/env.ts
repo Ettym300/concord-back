@@ -39,6 +39,7 @@ export default {
   NERIMITY_CDN: unquote(process.env.NERIMITY_CDN) as string,
   LOCAL_NERIMITY_CDN: unquote(process.env.LOCAL_NERIMITY_CDN) as string,
   NERIMITY_CDN_SECRET: unquote(process.env.NERIMITY_CDN_SECRET) as string,
+  CDN_DATA_DIR: unquote(process.env.CDN_DATA_DIR) || '.dev-cdn',
 
   MAX_CHANNELS_PER_SERVER: parseInt(process.env.MAX_CHANNELS_PER_SERVER || '100') as number,
   MAX_INVITES_PER_SERVER: parseInt(process.env.MAX_INVITES_PER_SERVER || '10') as number,

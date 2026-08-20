@@ -15,7 +15,7 @@ type PendingFile = {
   filesize: number;
 };
 
-const rootDir = path.join(process.cwd(), '.dev-cdn');
+const rootDir = path.resolve(env.CDN_DATA_DIR || path.join(process.cwd(), '.dev-cdn'));
 const publicDir = path.join(rootDir, 'public');
 const tempDir = path.join(rootDir, 'temp');
 const pending = new Map<string, PendingFile>();

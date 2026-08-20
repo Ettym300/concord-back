@@ -7,6 +7,13 @@ export interface Bitwise {
 }
 
 export const USER_BADGES = {
+  GOKU_HAIR: {
+    bit: 16777216,
+    color: 'linear-gradient(90deg, #585858 0%, #111111 100%)',
+    textColor: '#ffffff',
+    overlay: true,
+    icon: 'face',
+  },
   DEER_EARS_WHITE: {
     bit: 8388608,
     color: 'linear-gradient(273deg, #fb83a7, #ffffff)',

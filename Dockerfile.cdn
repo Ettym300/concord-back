@@ -11,6 +11,9 @@ COPY src ./src
 
 RUN pnpm install --frozen-lockfile \
   && pnpm exec tsdown --c tsdown.devCdn.config.ts
+ENV CDN_DATA_DIR=/data
+VOLUME ["/data"]
+
 EXPOSE 8003
 
 CMD ["node", "--enable-source-maps", "dist/dev-cdn/devCdnEntry.mjs"]
