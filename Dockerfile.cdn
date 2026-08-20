@@ -11,8 +11,9 @@ COPY src ./src
 
 RUN pnpm install --frozen-lockfile \
   && pnpm exec tsdown --c tsdown.devCdn.config.ts
-ENV CDN_DATA_DIR=/data
-VOLUME ["/data"]
+# Must match the EasyPanel volume mount path on concord-back.
+ENV CDN_DATA_DIR=/app/.dev-cdn
+VOLUME ["/app/.dev-cdn"]
 
 EXPOSE 8003
 

@@ -168,6 +168,7 @@ export function startDevCdn() {
   const host = process.env.CDN_BIND || '0.0.0.0';
   const httpServer = app.listen(port, host, () => {
     Log.info(`CDN listening on http://${host}:${port}`);
+    Log.info(`CDN data directory: ${rootDir}`);
   });
   httpServer.on('error', (error: NodeJS.ErrnoException) => {
     if (error.code === 'EADDRINUSE') {
