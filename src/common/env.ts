@@ -49,6 +49,11 @@ export default {
   CLOUDFLARE_CALLS_ID: process.env.CLOUDFLARE_CALLS_ID as string,
   CLOUDFLARE_CALLS_TOKEN: process.env.CLOUDFLARE_CALLS_TOKEN as string,
 
+  LIVEKIT_URL: unquote(process.env.LIVEKIT_URL) as string,
+  LIVEKIT_PUBLIC_WS_URL: unquote(process.env.LIVEKIT_PUBLIC_WS_URL) as string,
+  LIVEKIT_API_KEY: unquote(process.env.LIVEKIT_API_KEY) as string,
+  LIVEKIT_API_SECRET: unquote(process.env.LIVEKIT_API_SECRET) as string,
+
   // Set to "true" when SMTP is configured and email verification should be required again.
   EMAIL_CONFIRMATION_ENABLED: process.env.EMAIL_CONFIRMATION_ENABLED === 'true',
 
