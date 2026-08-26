@@ -1,6 +1,6 @@
 import { getChannelForUserCache } from '../cache/ChannelCache';
 import { getUserIdBySocketId } from '../cache/UserCache';
-import { addUserToVoice, countVoiceUsersInChannel, getVoiceUserByUserId, isUserInVoice, removeVoiceUserByUserId } from '../cache/VoiceCache';
+import { addUserToVoice, countVoiceUsersInChannel, getVoiceUserByUserId, removeVoiceUserByUserId } from '../cache/VoiceCache';
 import { prisma } from '../common/database';
 import env from '../common/env';
 import { generateError } from '../common/errorHandler';
@@ -37,8 +37,18 @@ export const joinVoiceChannel = async (userId: string, socketId: string, channel
     return [null, generateError('Invalid socketId or not connected to WebSocket.')] as const;
   }
 
-  const isAlreadyInVoice = await isUserInVoice(userId);
-  if (isAlreadyInVoice) {
+  const existingVoice = await getVoiceUserByUserId(userId);
+  // Same channel + new socket (e.g. WS reconnect): only refresh socketId.
+  // Leaving+rejoining emits voice:left and the client tears down LiveKit,
+  // which causes the ~15s connect/disconnect flap in production.
+  if (existingVoice?.channelId === channelId) {
+    await addUserToVoice(channelId, userId, {
+      socketId,
+      serverId: existingVoice.serverId ?? serverId,
+    });
+    return [true, null] as const;
+  }
+  if (existingVoice) {
     await leaveVoiceChannel(userId);
   }
 
