@@ -30,12 +30,42 @@ export const generateTurnCredentials = async () => {
   return ((await res.json()) as any).iceServers;
 };
 
+/** App WS often drops every ~15s behind proxies. Leaving voice immediately
+ * emits voice:left → client disconnects LiveKit → reconnect loop. */
+const VOICE_DISCONNECT_GRACE_MS = 60_000;
+const pendingVoiceLeaveTimers = new Map<string, ReturnType<typeof setTimeout>>();
+
+export const cancelPendingVoiceLeave = (userId: string) => {
+  const timer = pendingVoiceLeaveTimers.get(userId);
+  if (!timer) return;
+  clearTimeout(timer);
+  pendingVoiceLeaveTimers.delete(userId);
+};
+
+/** Leave voice only if the user does not reconnect within the grace period. */
+export const scheduleVoiceLeaveOnDisconnect = (userId: string, socketId: string) => {
+  cancelPendingVoiceLeave(userId);
+  const timer = setTimeout(() => {
+    pendingVoiceLeaveTimers.delete(userId);
+    void (async () => {
+      const voice = await getVoiceUserByUserId(userId);
+      // Only leave if still tied to the disconnected socket (no successful rejoin).
+      if (voice?.socketId === socketId) {
+        await leaveVoiceChannel(userId);
+      }
+    })();
+  }, VOICE_DISCONNECT_GRACE_MS);
+  pendingVoiceLeaveTimers.set(userId, timer);
+};
+
 export const joinVoiceChannel = async (userId: string, socketId: string, channelId: string, serverId?: string) => {
   const socketUserId = await getUserIdBySocketId(socketId);
 
   if (socketUserId !== userId) {
     return [null, generateError('Invalid socketId or not connected to WebSocket.')] as const;
   }
+
+  cancelPendingVoiceLeave(userId);
 
   const existingVoice = await getVoiceUserByUserId(userId);
   // Same channel + new socket (e.g. WS reconnect): only refresh socketId.
@@ -104,6 +134,8 @@ export const joinVoiceChannel = async (userId: string, socketId: string, channel
 };
 
 export const leaveVoiceChannel = async (userId: string, channelId?: string) => {
+  cancelPendingVoiceLeave(userId);
+
   const voiceUser = await getVoiceUserByUserId(userId);
   if (!voiceUser) return [null, generateError("You're not in a call.")] as const;
 

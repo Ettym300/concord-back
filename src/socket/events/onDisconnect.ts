@@ -4,7 +4,7 @@ import { dateToDateTime, prisma } from '../../common/database';
 import { emitUserPresenceUpdate } from '../../emits/User';
 import { UserStatus } from '../../types/User';
 import { getVoiceUserByUserId } from '../../cache/VoiceCache';
-import { leaveVoiceChannel } from '../../services/Voice';
+import { scheduleVoiceLeaveOnDisconnect } from '../../services/Voice';
 import { LastOnlineStatus } from '../../services/User/User';
 import { clearMembersFetched } from '../socket';
 
@@ -54,8 +54,11 @@ const handleDisconnect = async (socket: Socket) => {
     }
   }
 
+  // Do not leave voice immediately: EasyPanel/nginx often drops the app WS ~every 15s.
+  // Immediate leave → voice:left → client disconnects LiveKit → reconnect flap.
+  // Rejoin within the grace window refreshes socketId and cancels this timer.
   const voice = await getVoiceUserByUserId(userId);
   if (voice?.socketId === socket.id) {
-    leaveVoiceChannel(userId);
+    scheduleVoiceLeaveOnDisconnect(userId, socket.id);
   }
 };
